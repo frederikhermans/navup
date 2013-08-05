@@ -12,7 +12,7 @@ You need to set up your outgoing SMTP server. The configuration is stored in thr
 * `conf/username` Username to authenticate at the SMTP server.
 * `conf/password` Password to authenticate at the SMTP server.
 
-### E-mail addresses, class IDs and quantites ###
+### E-mail addresses, class IDs and quantities ###
 
 You need to define which updates to send to which email addresses. The configuration is stored in `data/profiles`. Each line specifies an email address, class IDs of the assets, and the quantity for each asset. Lines must have the following format:
 
