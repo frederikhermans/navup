@@ -12,11 +12,11 @@ You need to set up your outgoing SMTP server. The configuration is stored in thr
 * `conf/username` Username to authenticate at the SMTP server.
 * `conf/password` Password to authenticate at the SMTP server.
 
-### E-mail addresses and class IDs ###
+### E-mail addresses, class IDs and quantites ###
 
-You need to define which updates to send to which email addresses. The configuration is stored in `data/email_to_classids`. Each line of this file must be of the following format:
+You need to define which updates to send to which email addresses. The configuration is stored in `data/profiles`. Each line specifies an email address, class IDs of the assets, and the quantity for each asset. Lines must have the following format:
 
-`email-addr,classid1,classid2,classid3,...`
+`email-addr,classid1,qty1,classid2,qty2,classid3,qty3,...`
 
 ## Running ##
 

@@ -35,12 +35,16 @@ def get_nav(today, classid):
 
     return current
 
-def fmt_email(to, navs):
+def fmt_email(to, cid2qty, navs):
     msg_fmt = 'From: {mail_from}\nTo: {mail_to}\nSubject: {subject}\n\n{body}'
     body = ''
-    entry_fmt = '{date}\t{name:40s}\t{adj} {currency} ({adj_change:.2f}%)\n'
+    entry_fmt = '{date}\t{name:40s}\t{nav} {currency} ({nav_change:.2f}%)\t{value:.2f}\n'
+    total = 0
     for classid, nav in navs.iteritems():
-        body += entry_fmt.format(**nav)
+        value = cid2qty[classid]*nav['nav']
+        total += value
+        body += entry_fmt.format(value=value, **nav)
+    body += '\nTotal value: {total:.2f}'.format(total=total)
     return msg_fmt.format(mail_from=MAIL_FROM,
                           mail_to=to,
                           subject='Your navup updates',
@@ -56,31 +60,32 @@ def send_email(msg, mail_from, mail_to):
     server.sendmail(mail_from, mail_to, msg)
     server.quit()
 
-def load_email_to_classids():
-    email_to_classids = dict()
-    for line in open('data/email_to_classids').readlines():
+def load_profiles():
+    profiles = dict()
+    for line in open('data/profiles').readlines():
         line = line.strip().split(',')
-        email = line[0]
-        cids = line[1:]
-        email_to_classids[email] = cids
+        email = line.pop(0)
+        classids = line[0::2]
+        qtys = [float(q) for q in line[1::2]]
+        profiles[email] = dict(zip(classids, qtys))
 
-    return email_to_classids
+    return profiles
 
 def main():
-    email_to_classids = load_email_to_classids()
-    all_classids = set()
-    for cids in email_to_classids.itervalues():
-        all_classids.update(cids)
+    profiles = load_profiles()
+    classids = set()
+    for cid2qty in profiles.itervalues():
+        classids.update(cid2qty.keys())
 
     navs = dict()
     today = datetime.date.today()
-    for classid in all_classids:
+    for classid in classids:
         try:
             navs[classid] = get_nav(today, classid)
         except:
             print 'Failed to retrieve course for class id', classid
             traceback.print_exc()
 
-    for email, cids in email_to_classids.iteritems():
-        msg = fmt_email(email, {cid: navs[cid] for cid in cids})
+    for email, cid2qty in profiles.iteritems():
+        msg = fmt_email(email, cid2qty, {cid: navs[cid] for cid in cid2qty})
         send_email(msg, MAIL_FROM, email)
