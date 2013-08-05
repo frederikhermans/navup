@@ -89,3 +89,6 @@ def main():
     for email, cid2qty in profiles.iteritems():
         msg = fmt_email(email, cid2qty, {cid: navs[cid] for cid in cid2qty})
         send_email(msg, MAIL_FROM, email)
+
+if __name__ == '__main__':
+    main()
