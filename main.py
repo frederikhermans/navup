@@ -42,9 +42,7 @@ def fmt_email(to, cid2qty, navs):
     total = 0
     classids = [x[0] for x in sorted(cid2qty.items(), key=lambda x: x[1]*navs[x[0]]['nav'],
                                      reverse=True)]
-    print classids
     for classid in classids:
-    #for classid, nav in navs.iteritems():
         nav = navs[classid]
         value = cid2qty[classid]*nav['nav']
         total += value
@@ -93,8 +91,7 @@ def main():
 
     for email, cid2qty in profiles.iteritems():
         msg = fmt_email(email, cid2qty, {cid: navs[cid] for cid in cid2qty})
-        print msg
-        #send_email(msg, MAIL_FROM, email)
+        send_email(msg, MAIL_FROM, email)
 
 if __name__ == '__main__':
     main()
