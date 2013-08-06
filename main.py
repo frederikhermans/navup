@@ -40,7 +40,12 @@ def fmt_email(to, cid2qty, navs):
     body = ''
     entry_fmt = '{date}\t{name:40s}\t{nav} {currency} ({nav_change:.2f}%)\t{value:.2f}\n'
     total = 0
-    for classid, nav in navs.iteritems():
+    classids = [x[0] for x in sorted(cid2qty.items(), key=lambda x: x[1]*navs[x[0]]['nav'],
+                                     reverse=True)]
+    print classids
+    for classid in classids:
+    #for classid, nav in navs.iteritems():
+        nav = navs[classid]
         value = cid2qty[classid]*nav['nav']
         total += value
         body += entry_fmt.format(value=value, **nav)
@@ -88,7 +93,8 @@ def main():
 
     for email, cid2qty in profiles.iteritems():
         msg = fmt_email(email, cid2qty, {cid: navs[cid] for cid in cid2qty})
-        send_email(msg, MAIL_FROM, email)
+        print msg
+        #send_email(msg, MAIL_FROM, email)
 
 if __name__ == '__main__':
     main()
