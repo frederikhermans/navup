@@ -26,31 +26,43 @@ def get_nav(today, classid):
     if len(lines) < 3:
         raise Exception('Invalid data from web service.')
 
-    current = parse_line(lines[2])
-
-    if len(lines) > 3:
-        previous = parse_line(lines[3])
-        current['nav_change'] = 100*(current['nav']-previous['nav'])/previous['nav']
-        current['adj_change'] = 100*(current['adj']-previous['adj'])/previous['adj']
+    lines = [parse_line(l) for l in lines[2:]]
+    lines = sorted(lines, key=lambda l: l['date'], reverse=True)
+    current = lines[0]
+    if len(lines) > 1:
+        previous = lines[1]
+        current['nav_chg'] = 100*(current['nav']-previous['nav'])/previous['nav']
+        current['adj_chg'] = 100*(current['adj']-previous['adj'])/previous['adj']
 
     return current
 
 def fmt_email(to, cid2qty, navs):
     msg_fmt = 'From: {mail_from}\nTo: {mail_to}\nSubject: {subject}\n\n{body}'
     body = ''
-    entry_fmt = '{date}\t{name:40s}\t{nav} {currency} ({nav_change:.2f}%)\t{value:.2f}\n'
+    entry_fmt = '{date}\t{name:40s}\t{nav} {currency} ({nav_chg:.2f}%, {abs_chg:.2f})\t{value:.2f}\n'
     total = 0
+    total_abs_chg = 0
     classids = [x[0] for x in sorted(cid2qty.items(), key=lambda x: x[1]*navs[x[0]]['nav'],
                                      reverse=True)]
     for classid in classids:
         nav = navs[classid]
         value = cid2qty[classid]*nav['nav']
+        old_nav = nav['nav'] / (1+nav['nav_chg']/100.0)
+        abs_chg = cid2qty[classid]*(nav['nav']-old_nav)
         total += value
-        body += entry_fmt.format(value=value, **nav)
-    body += '\nTotal value: {total:.2f}'.format(total=total)
+        total_abs_chg += abs_chg
+        body += entry_fmt.format(value=value, abs_chg=abs_chg, **nav)
+
+    total_chg = 100*(total-(total-total_abs_chg))/(total-total_abs_chg)
+    footer_fmt = '\nTotal value: {total:.2f} ({total_chg:.2f}%, {total_abs_chg:.2f})'
+    subject_fmt = 'Navup: {total_chg:.2f}%, {total_abs_chg:.2f}'
+    subject = subject_fmt.format(total_abs_chg=total_abs_chg,
+                                 total_chg=total_chg)
+    body += footer_fmt.format(total=total, total_abs_chg=total_abs_chg,
+                          total_chg=total_chg)
     return msg_fmt.format(mail_from=MAIL_FROM,
                           mail_to=to,
-                          subject='Your navup updates',
+                          subject=subject,
                           body=body)
 
 def send_email(msg, mail_from, mail_to):
