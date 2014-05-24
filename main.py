@@ -24,6 +24,7 @@ def get_nav(today, classid):
                          classid=classid)
     lines = urllib2.urlopen(url).readlines()
     if len(lines) < 3:
+        print url
         raise Exception('Invalid data from web service.')
 
     lines = [parse_line(l) for l in lines[2:]]
@@ -102,7 +103,7 @@ def main():
             traceback.print_exc()
 
     for email, cid2qty in profiles.iteritems():
-        msg = fmt_email(email, cid2qty, {cid: navs[cid] for cid in cid2qty})
+        msg = fmt_email(email, cid2qty, {cid: navs[cid] for cid in cid2qty if cid in navs})
         send_email(msg, MAIL_FROM, email)
 
 if __name__ == '__main__':
