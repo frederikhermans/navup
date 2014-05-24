@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import ConfigParser
 import datetime
 import smtplib
 import traceback
@@ -78,12 +79,13 @@ def send_email(msg, mail_from, mail_to):
 
 def load_profiles():
     profiles = dict()
-    for line in open('data/profiles').readlines():
-        line = line.strip().split(',')
-        email = line.pop(0)
-        classids = line[0::2]
-        qtys = [float(q) for q in line[1::2]]
-        profiles[email] = dict(zip(classids, qtys))
+    conf = ConfigParser.ConfigParser()
+    conf.optionxform = str # Don't transform options to lowercase
+    conf.read('data/profiles')
+    for email in conf.sections():
+        profiles[email] = dict()
+        for classid, qty in conf.items(email):
+            profiles[email][classid] = float(qty)
 
     return profiles
 
